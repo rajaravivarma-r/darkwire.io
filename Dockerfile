@@ -10,8 +10,8 @@ ENV MAILGUN_API_KEY=api-key \
     ABUSE_TO_EMAIL_ADDRESS=abuse@darkwire.io \
     ABUSE_FROM_EMAIL_ADDRESS="Darkwire <no-reply@darkwire.io>" \
     CLIENT_DIST_DIRECTORY='client/dist/'\
-    ROOM_HASH_SECRET='some-uuid'\
-    SITE_URL=https://darkwire.io \
+    ROOM_HASH_SECRET='17485ac3-a42d-4b1b-8d52-9271c82ae720'\
+    SITE_URL=https://35.192.183.60 \
     STORE_BACKEND=memory
 
 # Client configuration will be put into client/.env
@@ -20,7 +20,7 @@ ENV TZ=UTC \
     VITE_API_PROTOCOL=http \
     VITE_API_PORT=3001 \
     VITE_COMMIT_SHA=some_sha \
-    VITE_MAX_FILE_SIZE=4
+    VITE_MAX_FILE_SIZE=20
 
 COPY --chown=node:node . .
 
