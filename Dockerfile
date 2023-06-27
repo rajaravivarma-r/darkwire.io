@@ -11,8 +11,8 @@ ENV MAILGUN_API_KEY=api-key \
     ABUSE_FROM_EMAIL_ADDRESS="Darkwire <no-reply@darkwire.io>" \
     CLIENT_DIST_DIRECTORY='client/dist/'\
     ROOM_HASH_SECRET='17485ac3-a42d-4b1b-8d52-9271c82ae720'\
-    STORE_BACKEND=memory
-    SITE_URL=https://dark.bubye.cyou \
+    STORE_BACKEND=memory \
+    SITE_URL=https://dark.bubye.cyou 
 
 # Client configuration will be put into client/.env
 ENV TZ=UTC \
