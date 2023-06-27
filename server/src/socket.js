@@ -1,5 +1,6 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
+import { exec } from 'child_process';
 
 export default class Socket {
   constructor(opts) {
@@ -65,6 +66,17 @@ export default class Socket {
 
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
+      exec(`redis-cli LPUSH server:event:user ${roomId}`, (error, stdout, stderr) => {
+          if (error) {
+              console.log(`error: ${error.message}`);
+              return;
+          }
+          if (stderr) {
+              console.log(`stderr: ${stderr}`);
+              return;
+          }
+          console.log(`stdout: ${stdout}`);
+      });
       if (Object.entries(room).length === 0) {
         room = {
           id: this._roomId,
