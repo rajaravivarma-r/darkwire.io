@@ -16,10 +16,10 @@ ENV MAILGUN_API_KEY=api-key \
 
 # Client configuration will be put into client/.env
 ENV TZ=UTC \
-    VITE_API_HOST=localhost \
-    VITE_API_PROTOCOL=http \
-    VITE_API_PORT=3001 \
-    VITE_COMMIT_SHA=some_sha \
+    VITE_API_HOST=dark.bubye.cyou \
+    VITE_API_PROTOCOL=https \
+    VITE_API_PORT=443 \
+    VITE_COMMIT_SHA=a961269a66f65f0ba797766ba01453cdaaf174fd \
     VITE_MAX_FILE_SIZE=20
 
 COPY --chown=node:node . .
