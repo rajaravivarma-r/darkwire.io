@@ -66,7 +66,8 @@ export default class Socket {
 
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
-      exec(`redis-cli LPUSH server:event:user ${roomId}`, (error, stdout, stderr) => {
+      let joinedAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+      exec(`curl -X POST -L https://www.bubye.cyou/bookmark/put -d '{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}'`, (error, stdout, stderr) => {
           if (error) {
               console.log(`error: ${error.message}`);
               return;
