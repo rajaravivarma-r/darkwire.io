@@ -1,0 +1,50 @@
+FROM node:18-bullseye-slim
+
+RUN apt-get -y update; apt-get -y install curl
+
+USER node:node
+
+WORKDIR /home/node
+
+# Server environmental variables will be put into server/.env
+ENV MAILGUN_API_KEY=api-key \
+    MAILGUN_DOMAIN=darkwire.io \
+    ABUSE_TO_EMAIL_ADDRESS=abuse@darkwire.io \
+    ABUSE_FROM_EMAIL_ADDRESS="Darkwire <no-reply@darkwire.io>" \
+    CLIENT_DIST_DIRECTORY='client/dist/'\
+    ROOM_HASH_SECRET='17485ac3-a42d-4b1b-8d52-9271c82ae720'\
+    STORE_BACKEND=memory \
+    SITE_URL=https://dark.bubye.cyou 
+
+# Client configuration will be put into client/.env
+ENV TZ=UTC \
+    VITE_API_HOST=dark.bubye.cyou \
+    VITE_API_PROTOCOL=https \
+    VITE_API_PORT=443 \
+    VITE_COMMIT_SHA=a961269a66f65f0ba797766ba01453cdaaf174fd \
+    VITE_MAX_FILE_SIZE=20
+
+COPY --chown=node:node package.json package.json
+COPY --chown=node:node yarn.lock yarn.lock
+
+COPY --chown=node:node client/package.json client/package.json
+COPY --chown=node:node client/yarn.lock client/yarn.lock
+RUN cd client && yarn --production=false
+
+COPY --chown=node:node client client
+RUN cd client && yarn build
+
+COPY --chown=node:node server/package.json server/package.json
+COPY --chown=node:node server/yarn.lock server/yarn.lock
+RUN cd server && echo 'installing server package' && yarn --production=false && yarn build
+
+COPY --chown=node:node server server
+RUN cd server && echo 'building server' && yarn build
+
+STOPSIGNAL SIGINT
+EXPOSE 3001
+HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \ 
+    CMD [ "curl", "-f", "${VITE_API_PROTOCOL}://localhost:${VITE_API_PORT}", "||", "exit", "1" ]
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]
+CMD ["yarn", "start"]
