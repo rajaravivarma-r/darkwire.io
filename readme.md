@@ -1,7 +1,5 @@
 # Darkwire.io
 
-[![CircleCI](https://circleci.com/gh/darkwire/darkwire.io.svg?style=svg)](https://circleci.com/gh/darkwire/darkwire.io)
-
 Simple encrypted web chat. Powered by [socket.io](http://socket.io), the [web cryptography API](https://developer.mozilla.org/en-US/docs/Web/API/Window/crypto). This project is an example of how client side encryption works and how you can integrate it as a chat service.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
@@ -86,7 +84,7 @@ Then run it. Example:
 $ docker run --init --name darkwire.io --rm -p 3001:3001 darkwire.io
 ```
 
-You are able to use any of the enviroment variables available in `server/.env.dist` and `client/.env.dist`. The defaults are available in [Dockerfile](Dockerfile)
+You are able to use any of the environment variables available in `server/.env.dist` and `client/.env.dist`. The defaults are available in [Dockerfile](Dockerfile)
 
 ### Security
 
