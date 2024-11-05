@@ -1,8 +1,9 @@
 import beepFile from '@/audio/beep.mp3';
 
-const isNewNotificationSupported = () => {
-  if (!window.Notification || !Notification.requestPermission)
+export const isNewNotificationSupported = () => {
+  if (!window.Notification || !Notification.requestPermission) {
     return false;
+  } else { return true; }
   if (Notification.permission == 'granted')
     throw new Error('You must only call this \*before\* calling Notification.requestPermission(), otherwise this feature detect would bug the user with an actual notification!');
   try {
