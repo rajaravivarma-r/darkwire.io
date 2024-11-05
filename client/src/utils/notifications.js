@@ -1,5 +1,20 @@
 import beepFile from '@/audio/beep.mp3';
 
+export const isNewNotificationSupported = () => {
+  if (!window.Notification || !Notification.requestPermission) {
+    return false;
+  } else { return true; }
+  if (Notification.permission == 'granted')
+    throw new Error('You must only call this \*before\* calling Notification.requestPermission(), otherwise this feature detect would bug the user with an actual notification!');
+  try {
+    new Notification('');
+  } catch (e) {
+    if (e.name == 'TypeError')
+      return false;
+  }
+  return true;
+}
+
 const showNotification = (title, message) => {
   const notifBody = {
     body: message,
@@ -24,7 +39,7 @@ const showNotification = (title, message) => {
 };
 
 export const notify = (title, content = '') => {
-  if (!('Notification' in window)) {
+  if (!isNewNotificationSupported()) {
     alert('This browser does not support desktop notification');
   }
   // Let's check whether notification permissions have already been granted
@@ -61,4 +76,4 @@ export const beep = {
   },
 };
 
-export default { notify, beep };
+export default { notify, beep, isNewNotificationSupported };

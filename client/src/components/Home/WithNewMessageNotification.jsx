@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Tinycon from 'tinycon';
 
-import { notify, beep } from '@/utils/notifications';
+import { notify, beep, isNewNotificationSupported } from '@/utils/notifications';
 import { toggleNotificationAllowed } from '@/actions';
 
 const mapStateToProps = state => {
@@ -97,6 +97,10 @@ const WithNewMessageNotification = ({
   ]);
 
   React.useEffect(() => {
+    if(!isNewNotificationSupported()) {
+      console.log('The browser does not support Notification');
+      return;
+    }
     switch (Notification.permission) {
       case 'granted':
         toggleNotificationAllowed(true);

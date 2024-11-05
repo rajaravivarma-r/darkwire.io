@@ -27,7 +27,26 @@ const Settings = ({
     togglePersistenceEnabled(!persistenceIsEnabled);
   };
 
+  const isNewNotificationSupported = () => {
+    if (!window.Notification || !Notification.requestPermission)
+      return false;
+    if (Notification.permission == 'granted')
+      throw new Error('You must only call this \*before\* calling Notification.requestPermission(), otherwise this feature detect would bug the user with an actual notification!');
+    try {
+      new Notification('');
+    } catch (e) {
+      if (e.name == 'TypeError')
+        return false;
+    }
+    return true;
+  }
+
+
   const handleNotificationToggle = () => {
+    if (!isNewNotificationSupported()) {
+      console.log('Notifications are not supported by the browser');
+      return;
+    }
     Notification.requestPermission().then(permission => {
       if (permission === 'granted') {
         toggleNotificationEnabled(!notificationIsEnabled);
