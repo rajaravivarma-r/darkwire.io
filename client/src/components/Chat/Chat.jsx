@@ -122,11 +122,20 @@ export const Chat = ({
     }
   };
 
-  const handleKeyPress = e => {
+  // Send message on Ctrl+Enter (desktop and mobile web)
+  const handleKeyDown = e => {
     if (e.key === 'Shift') {
       setShiftKeyDown(true);
     }
-    if (e.key === 'Enter' && !hasTouchSupport && !shiftKeyDown) {
+    // Ctrl+Enter (desktop and mobile web)
+    if ((e.key === 'Enter' || e.keyCode === 13) && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (canSend) {
+        sendMessage();
+      }
+    }
+    // For legacy: Enter (without Shift) on desktop
+    if (e.key === 'Enter' && !hasTouchSupport && !shiftKeyDown && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       if (canSend) {
         sendMessage();
@@ -237,7 +246,7 @@ export const Chat = ({
       <textarea
         rows="1"
         onKeyUp={handleKeyUp}
-        onKeyDown={handleKeyPress}
+        onKeyDown={handleKeyDown}
         ref={textInputRef}
         autoFocus
         className="chat"
