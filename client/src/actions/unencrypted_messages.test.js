@@ -124,3 +124,48 @@ describe('Send unencrypted message actions', () => {
     });
   });
 });
+import { sendUnencryptedFile, receiveUnencryptedMessage } from './unencrypted_messages';
+
+describe('unencrypted_messages actions', () => {
+  let dispatch, getState, socketEmit;
+
+  beforeEach(() => {
+    dispatch = jest.fn();
+    getState = () => ({
+      user: { username: 'Alice', id: 'user1' },
+      room: { members: [{ publicKey: { n: 'n1' }, username: 'Alice', id: 'user1' }] },
+    });
+    socketEmit = jest.fn();
+    jest.mock('@/utils/socket', () => ({
+      getSocket: () => ({ emit: socketEmit }),
+    }));
+  });
+
+  it('sendUnencryptedFile dispatches SEND_UNENCRYPTED_FILE', async () => {
+    const fileObj = { encodedFile: 'abc', fileName: 'f.png', fileType: 'image/png' };
+    await sendUnencryptedFile(fileObj)(dispatch, getState);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'SEND_UNENCRYPTED_FILE', payload: expect.objectContaining(fileObj) })
+    );
+  });
+
+  it('receiveUnencryptedMessage dispatches RECEIVE_UNENCRYPTED_FILE', async () => {
+    await receiveUnencryptedMessage('RECEIVE_UNENCRYPTED_FILE', { foo: 1 })(dispatch, getState);
+    expect(dispatch).toHaveBeenCalledWith({ type: 'RECEIVE_UNENCRYPTED_FILE', payload: { foo: 1 } });
+  });
+
+  it('receiveUnencryptedMessage handles USER_ENTER', async () => {
+    await receiveUnencryptedMessage('USER_ENTER', { publicKey: { n: 'n1' } })(dispatch, getState);
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'USER_ENTER' }));
+  });
+
+  it('receiveUnencryptedMessage handles USER_EXIT', async () => {
+    const state = {
+      ...getState(),
+      room: { members: [{ publicKey: { n: 'n1' }, username: 'Alice', id: 'user1' }, { publicKey: { n: 'n2' }, username: 'Bob', id: 'user2' }] }
+    };
+    const payload = [{ publicKey: { n: 'n1' }, username: 'Alice', id: 'user1' }];
+    await receiveUnencryptedMessage('USER_EXIT', payload)(dispatch, () => state);
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({ type: 'USER_EXIT' }));
+  });
+});
