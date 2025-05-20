@@ -1,6 +1,8 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
 import { exec } from 'child_process';
+import fetch from 'node-fetch';
+import FileType from 'file-type';
 
 export default class Socket {
   constructor(opts) {
@@ -60,8 +62,54 @@ export default class Socket {
   }
 
   async handleSocket(socket) {
-    socket.on('ENCRYPTED_MESSAGE', payload => {
-      socket.to(this._roomId).emit('ENCRYPTED_MESSAGE', payload);
+    socket.on('ENCRYPTED_MESSAGE', async payload => {
+      // Detect if payload is a direct image URL and convert to image transfer
+      try {
+        // Defensive: Only process if payload is an object and has a .payload property
+        let processedPayload = payload;
+        if (
+          payload &&
+          typeof payload === 'object' &&
+          payload.payload &&
+          typeof payload.payload === 'string'
+        ) {
+          const imageUrl = payload.payload.trim();
+          // Simple regex for image URLs
+          if (
+            /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(imageUrl)
+          ) {
+            // Download the image
+            const response = await fetch(imageUrl);
+            if (response.ok) {
+              const buffer = await response.buffer();
+              // Detect file type
+              let fileType = await FileType.fromBuffer(buffer);
+              if (!fileType) {
+                // fallback to extension
+                const ext = imageUrl.split('.').pop().toLowerCase();
+                fileType = { mime: `image/${ext}` };
+              }
+              // Encode as base64
+              const encodedFile = buffer.toString('base64');
+              // Compose new payload as file transfer
+              processedPayload = {
+                ...payload,
+                payload: {
+                  encodedFile,
+                  fileName: imageUrl.split('/').pop(),
+                  fileType: fileType.mime,
+                  timestamp: Date.now(),
+                },
+                type: 'SEND_FILE',
+              };
+            }
+          }
+        }
+        socket.to(this._roomId).emit('ENCRYPTED_MESSAGE', processedPayload);
+      } catch (err) {
+        // fallback: just forward original payload
+        socket.to(this._roomId).emit('ENCRYPTED_MESSAGE', payload);
+      }
     });
 
     socket.on('USER_ENTER', async payload => {
