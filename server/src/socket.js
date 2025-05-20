@@ -112,6 +112,11 @@ export default class Socket {
       }
     });
 
+    socket.on('UNENCRYPTED_FILE', payload => {
+      // Broadcast unencrypted file to all in room except sender
+      socket.to(this._roomId).emit('RECEIVE_UNENCRYPTED_FILE', payload);
+    });
+
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
       let joinedAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });

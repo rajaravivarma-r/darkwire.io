@@ -51,6 +51,9 @@ export const receiveUnencryptedMessage = (type, payload) => async (dispatch, get
       return receiveUserExit(payload, dispatch, getState);
     case 'TOGGLE_LOCK_ROOM':
       return receiveToggleLockRoom(payload, dispatch, getState);
+    case 'RECEIVE_UNENCRYPTED_FILE':
+      dispatch({ type: 'RECEIVE_UNENCRYPTED_FILE', payload });
+      return;
     default:
       return;
   }
@@ -77,4 +80,21 @@ export const sendUnencryptedMessage = type => async (dispatch, getState) => {
     default:
       return;
   }
+};
+
+/**
+ * Send an unencrypted file (image/mp4) to the server.
+ * @param {Object} fileObj { encodedFile, fileName, fileType }
+ */
+export const sendUnencryptedFile = fileObj => async (dispatch, getState) => {
+  const state = getState();
+  const { username, id } = state.user;
+  const payload = {
+    ...fileObj,
+    sender: id,
+    username,
+    timestamp: Date.now(),
+  };
+  getSocket().emit('UNENCRYPTED_FILE', payload);
+  dispatch({ type: 'SEND_UNENCRYPTED_FILE', payload });
 };

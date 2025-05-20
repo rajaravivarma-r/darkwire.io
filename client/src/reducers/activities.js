@@ -31,6 +31,28 @@ const activities = (state = initialState, action) => {
           },
         ],
       };
+    case 'SEND_UNENCRYPTED_FILE':
+      return {
+        ...state,
+        items: [
+          ...state.items,
+          {
+            ...action.payload,
+            type: 'UNENCRYPTED_FILE',
+          },
+        ],
+      };
+    case 'RECEIVE_UNENCRYPTED_FILE':
+      return {
+        ...state,
+        items: [
+          ...state.items,
+          {
+            ...action.payload,
+            type: 'RECEIVE_UNENCRYPTED_FILE',
+          },
+        ],
+      };
     case 'SEND_ENCRYPTED_MESSAGE_TEXT_MESSAGE':
       return {
         ...state,
