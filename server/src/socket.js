@@ -1,6 +1,7 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
 import fs from "fs";
+import { fileTypeFromBuffer } from 'file-type';
 
 const logStream = fs.createWriteStream("/var/log/darkwire/app.log", { flags: "a" });
 
@@ -88,7 +89,7 @@ export default class Socket {
             if (response.ok) {
               const buffer = await response.buffer();
               // Detect file type
-              let fileType = await FileType.fromBuffer(buffer);
+              let fileType = await fileTypeFromBuffer(buffer);
               if (!fileType) {
                 // fallback to extension
                 const ext = imageUrl.split('.').pop().toLowerCase();
