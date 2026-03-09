@@ -1,6 +1,6 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
-import { exec } from 'child_process';
+const { execFile } = require("child_process");
 
 export default class Socket {
   constructor(opts) {
@@ -67,7 +67,8 @@ export default class Socket {
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
       let joinedAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-      exec(`/usr/bin/redis-cli LPUSH server:activity '{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}'`, (error, stdout, stderr) => {
+      const redis_payload = `{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}`
+      execFile("/usr/bin/redis-cli", ["LPUSH", "server:activity", redis_payload], (error, stdout, stderr) => {
         if (error) {
           console.log(`error: ${error.message}`);
           return;
