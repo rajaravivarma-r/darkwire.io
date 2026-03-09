@@ -67,7 +67,7 @@ export default class Socket {
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
       let joinedAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-      exec(`redis-cli LPUSH server:activity '{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}'`, (error, stdout, stderr) => {
+      exec(`/usr/bin/redis-cli LPUSH server:activity '{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}'`, (error, stdout, stderr) => {
         if (error) {
           console.log(`error: ${error.message}`);
           return;
