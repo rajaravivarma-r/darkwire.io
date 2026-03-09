@@ -1,6 +1,14 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
 import { execFile } from "child_process";
+import fs from "fs";
+
+const logStream = fs.createWriteStream("/var/log/darkwire/app.log", { flags: "a" });
+
+export function log(...args) {
+  const line = `[${new Date().toISOString()}] ${args.join(" ")}`;
+  logStream.write(line + "\n");
+}
 
 export default class Socket {
   constructor(opts) {
@@ -67,18 +75,8 @@ export default class Socket {
     socket.on('USER_ENTER', async payload => {
       let room = await this.fetchRoom();
       let joinedAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-      const redis_payload = `{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}`
-      execFile("/usr/bin/redis-cli", ["LPUSH", "server:activity", redis_payload], (error, stdout, stderr) => {
-        if (error) {
-          console.log(`error: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          console.log(`stderr: ${stderr}`);
-          return;
-        }
-        console.log(`stdout: ${stdout}`);
-      });
+      const redis_payload = `{"roomId": "${this._roomId}", "joinedAt": "${joinedAt}"}`;
+      log(redis_payload);
       if (Object.entries(room).length === 0) {
         room = {
           id: this._roomId,
