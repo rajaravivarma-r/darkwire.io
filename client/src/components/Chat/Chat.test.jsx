@@ -252,3 +252,81 @@ describe('Chat component', () => {
     expect(sendEncryptedMessage).toHaveBeenCalledTimes(1);
   });
 });
+import React from 'react';
+import { render, fireEvent, screen, act } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { Chat } from './Chat';
+
+describe('Chat component', () => {
+  const baseProps = {
+    sendEncryptedMessage: jest.fn(),
+    sendUnencryptedFile: jest.fn(),
+    showNotice: jest.fn(),
+    userId: 'user1',
+    username: 'Alice',
+    clearActivities: jest.fn(),
+    focusChat: false,
+    scrollToBottom: jest.fn(),
+    translations: { typePlaceholder: 'Type a message...' },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders textarea and buttons', () => {
+    render(<Chat {...baseProps} />);
+    expect(screen.getByPlaceholderText('Type a message...')).toBeInTheDocument();
+    expect(screen.getByTitle('Send unencrypted media')).toBeInTheDocument();
+  });
+
+  it('calls sendEncryptedMessage on Enter (desktop)', () => {
+    render(<Chat {...baseProps} />);
+    const textarea = screen.getByPlaceholderText('Type a message...');
+    fireEvent.change(textarea, { target: { value: 'hello' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 13, shiftKey: false, ctrlKey: false, metaKey: false });
+    expect(baseProps.sendEncryptedMessage).toHaveBeenCalled();
+  });
+
+  it('calls sendEncryptedMessage on Ctrl+Enter', () => {
+    render(<Chat {...baseProps} />);
+    const textarea = screen.getByPlaceholderText('Type a message...');
+    fireEvent.change(textarea, { target: { value: 'hello' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 13, ctrlKey: true });
+    expect(baseProps.sendEncryptedMessage).toHaveBeenCalled();
+  });
+
+  it('calls sendUnencryptedFile when file is selected', async () => {
+    render(<Chat {...baseProps} />);
+    const file = new File(['abc'], 'test.png', { type: 'image/png' });
+    const input = screen.getByLabelText('', { selector: 'input[type="file"]' });
+    // Mock FileReader
+    const readAsArrayBuffer = jest.fn();
+    const addEventListener = jest.fn((_, cb) => cb({ target: { result: new Uint8Array([97, 98, 99]).buffer } }));
+    window.FileReader = jest.fn(() => ({
+      readAsArrayBuffer,
+      addEventListener,
+      onload: null,
+      onerror: null,
+      result: null,
+      readAsDataURL: jest.fn(),
+      readAsText: jest.fn(),
+      readAsBinaryString: jest.fn(),
+      readAsArrayBuffer: function(buffer) {
+        this.onload({ target: { result: buffer } });
+      },
+    }));
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [file] } });
+    });
+    expect(baseProps.sendUnencryptedFile).toHaveBeenCalled();
+  });
+
+  it('shows error for invalid /nick command', () => {
+    render(<Chat {...baseProps} />);
+    const textarea = screen.getByPlaceholderText('Type a message...');
+    fireEvent.change(textarea, { target: { value: '/nick 123456789012345678901' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 13, ctrlKey: true });
+    expect(baseProps.showNotice).toHaveBeenCalled();
+  });
+});

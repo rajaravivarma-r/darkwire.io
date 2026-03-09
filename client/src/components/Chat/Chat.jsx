@@ -1,16 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import sanitizeHtml from 'sanitize-html';
-import { CornerDownRight } from 'react-feather';
+import { CornerDownRight, Unlock } from 'react-feather';
 
 import { hasTouchSupport } from '@/utils/dom';
 
 import FileTransfer from '@/components/FileTransfer';
 
-export const Chat = ({ sendEncryptedMessage, showNotice, userId, username, clearActivities, translations }) => {
+export const Chat = ({
+  sendEncryptedMessage,
+  sendUnencryptedFile,
+  showNotice,
+  userId,
+  username,
+  clearActivities,
+  translations,
+}) => {
   const [message, setMessage] = React.useState('');
   const [shiftKeyDown, setShiftKeyDown] = React.useState(false);
   const textInputRef = React.useRef();
+  const fileInputRef = React.useRef();
 
   const touchSupport = hasTouchSupport;
 
@@ -113,11 +122,20 @@ export const Chat = ({ sendEncryptedMessage, showNotice, userId, username, clear
     }
   };
 
-  const handleKeyPress = e => {
+  // Send message on Ctrl+Enter (desktop and mobile web)
+  const handleKeyDown = e => {
     if (e.key === 'Shift') {
       setShiftKeyDown(true);
     }
-    if (e.key === 'Enter' && !hasTouchSupport && !shiftKeyDown) {
+    // Ctrl+Enter (desktop and mobile web)
+    if ((e.key === 'Enter' || e.keyCode === 13) && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (canSend) {
+        sendMessage();
+      }
+    }
+    // For legacy: Enter (without Shift) on desktop
+    if (e.key === 'Enter' && !hasTouchSupport && !shiftKeyDown && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       if (canSend) {
         sendMessage();
@@ -202,12 +220,33 @@ export const Chat = ({ sendEncryptedMessage, showNotice, userId, username, clear
     setMessage(evt.target.value);
   };
 
+  // Handler for unencrypted file input
+  const handleUnencryptedFileChange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const encodedFile = btoa(
+        new Uint8Array(ev.target.result)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      sendUnencryptedFile({
+        encodedFile,
+        fileName: file.name,
+        fileType: file.type,
+      });
+    };
+    reader.readAsArrayBuffer(file);
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
   return (
     <form onSubmit={handleFormSubmit} className="chat-preflight-container">
       <textarea
         rows="1"
         onKeyUp={handleKeyUp}
-        onKeyDown={handleKeyPress}
+        onKeyDown={handleKeyDown}
         ref={textInputRef}
         autoFocus
         className="chat"
@@ -217,6 +256,22 @@ export const Chat = ({ sendEncryptedMessage, showNotice, userId, username, clear
       />
       <div className="input-controls">
         <FileTransfer sendEncryptedMessage={sendEncryptedMessage} />
+        {/* Unencrypted file attach button */}
+        <input
+          type="file"
+          accept="image/*,video/mp4"
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={handleUnencryptedFileChange}
+        />
+        <button
+          type="button"
+          className="icon is-right attach btn btn-link"
+          title="Send unencrypted media"
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+        >
+          <Unlock />
+        </button>
         {touchSupport && (
           <button
             onClick={handleSendClick}
@@ -233,6 +288,7 @@ export const Chat = ({ sendEncryptedMessage, showNotice, userId, username, clear
 
 Chat.propTypes = {
   sendEncryptedMessage: PropTypes.func.isRequired,
+  sendUnencryptedFile: PropTypes.func.isRequired,
   showNotice: PropTypes.func.isRequired,
   userId: PropTypes.string.isRequired,
   username: PropTypes.string.isRequired,
