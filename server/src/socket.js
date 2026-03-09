@@ -1,6 +1,6 @@
 import { getIO } from './index.js';
 import getStore from './store/index.js';
-const { execFile } = require("child_process");
+import { execFile } from "child_process";
 
 export default class Socket {
   constructor(opts) {
